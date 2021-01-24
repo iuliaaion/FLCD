@@ -1,0 +1,198 @@
+%{
+#include <cstdio>
+#include <iostream>
+using namespacee std;
+
+extern "C" int yylex();
+extern "C" int yyparse();
+extern "C" FILE* yyin;
+
+void yyerror(const char* s);
+%}
+
+%token TK_IF
+%token TK_THEN
+%token TK_WHILE
+%token TK_DO
+%token TK_FOR
+%token TK_TO
+%token TK_ELSE
+
+%token TK_ARRAY
+%token TK_OF
+
+%token TK_BOOL
+%token TK_CHAR
+%token TK_INT
+%token TK_DOUBLE
+
+%token TK_SEMICOLON
+%token TK_COMMA
+%token TK_COLON
+%token TK_SPACE
+
+%token TK_EQUAL
+%token TK_EQUAL_EQUAL
+%token TK_NOT_EQUAL
+%token TK_SMALLER_EQUAL
+%token TK_SMALLER
+%token TK_GREATER_EQUAL
+%token TK_GREATER
+
+%token TK_PLUS
+%token TK_MINUS
+%token TK_MULTIPLY
+%token TK_DIVIDE
+
+%token TK_INPUT
+%token TK_OUTPUT
+
+%token TK_READ
+%token TK_WRITE
+
+%token TK_OPEN_R_BRACKET
+%token TK_CLOSE_R_BRACKET 
+%token TK_OPEN_SQUARE_BRACKET
+%token TK_CLOSE_SQUARE_BRACKET
+%token TK_OPEN_CURLY_BRACKET
+%token TK_CLOSE_CURLY_BRACKET
+
+%token TK_IDENTIFIER
+%token <char_t> TK_CHAR
+%token <number_t> TK_NUMBER
+%token TK_CONST
+
+%%
+
+id_sequence:
+	TK_IDENTIFIER
+	| TK_IDENTIFIER TK_COMMA id_sequence
+	;
+
+declaration:
+	id_sequence
+	| TK_SPACE type
+	;
+
+type:
+	typo 
+	|declaration_list
+	;
+
+declaration_list:
+	TK_ARRAY TK_OPEN_SQUARE_BRACKET TK_NUMBER TK_CLOSE_SQUARE_BRACKET TK_OF typo
+	;
+
+typo:
+	TK_BOOL
+	| TK_CHAR
+	| TK_INT
+	| TK_DOUBLE
+	;
+
+cmpd_stmt:
+	TK_OPEN_CURLY_BRACKET stmt_list TK_CLOSE_CURLY_BRACKET
+	;
+
+stmt_list:
+	stmt
+	| stmt TK_SEMICOLON stmt_list
+	;
+
+stmt:
+	simple_stmt
+	| struct_stmt
+	;
+
+simple_stmt:
+	assign_stmt 
+	| io_stmt
+	;
+
+assign_stmt:
+	TK_IDENTIFIER TK_EQUAL expr
+	;
+
+expr:
+	expr TK_PLUS term 
+	| expr TK_MINUS term
+	| term
+	;
+
+term:
+	term TK_MULTIPLY factor 
+	| term TK_DIVIDE factor
+	| factor
+	;
+
+factor:
+	TK_OPEN_R_BRACKET expr TK_CLOSE_R_BRACKET
+	| TK_IDENTIFIER
+	;
+
+io_stmt:
+	TK_READ TK_OPEN_R_BRACKET TK_IDENTIFIER TK_CLOSE_R_BRACKET
+	| TK_WRITE TK_OPEN_R_BRACKET TK_IDENTIFIER TK_CLOSE_R_BRACKET
+	;
+
+struct_stmt:
+	cmpd_stmt 
+	| if
+	| while
+	| for
+	;
+		
+if:
+	TK_IF condition TK_THEN stmt TK_OPEN_SQUARE_BRACKET TK_ELSE stmt TK_CLOSE_SQUARE_BRACKET
+	; 
+
+while:
+	TK_WHILE condition TK_DO stmt
+	;
+
+for:
+	TK_FOR cond TK_TO TK_NUMBER 
+	| TK_IDENTIFIER TK_DO stmt 
+	;
+
+condition:
+	expr
+	| relation
+	| expr
+	;
+
+relation:
+	TK_SMALLER
+	| TK_SMALLER_EQUAL
+	| TK_EQUAL_EQUAL
+	| TK_NOT_EQUAL
+	| TK_GREATER_EQUAL
+	| TK_GREATER
+	;
+
+%%
+
+int main()
+{
+	FILE *myFile = fopen("source.txt","r");
+	if(!myfile)
+	{
+		count << "File can't be open" << endl;
+		return -1;
+	}
+
+	yyin = myfile;
+	
+	do
+	{	
+		yyparse();
+	}while(!feof(yyin));
+	return 0;
+}
+
+void yyerror(const char* s)
+{
+	fprintf(stderr, "Parse error: %s\n",s);
+	exit(1);
+}
+
